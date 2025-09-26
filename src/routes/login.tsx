@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import AuthTabs from "~/routes/authTabs";
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -10,42 +11,57 @@ function Login() {
   const [password, setPassword] = useState("");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="flex flex-col gap-4 p-6 bg-white rounded shadow-md w-80">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      {/* Tabs ABOVE the box */}
+      <AuthTabs />
+
+      {/* Outlined box */}
+      <div className="flex flex-col gap-4 p-6 bg-white border border-black rounded w-80">
         <img
           src="/android-chrome-192x192.png"
           alt="App Logo"
           className="w-24 h-24 mx-auto rounded-full"
         />
+
         <div>
           <label htmlFor="username" className="pe-4">
             User ID
           </label>
           <input
+            id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            id="username"
             className="border rounded w-full px-2 py-1"
           />
         </div>
+
         <div>
           <label htmlFor="password" className="pe-4">
             Password
           </label>
           <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             id="password"
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="border rounded w-full px-2 py-1"
           />
         </div>
+
         <button
-          type="submit"
+          type="button"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           onClick={() => login(username)}
         >
           Login
+        </button>
+
+        <button
+          type="button"
+          className="text-blue-600 underline hover:text-blue-800 bg-transparent border-none p-0 cursor-pointer"
+          onClick={forgotPassword}
+        >
+          Forgot your password?
         </button>
       </div>
     </div>
@@ -54,4 +70,8 @@ function Login() {
 
 function login(username: string) {
   alert(`Logged in as '${username}'`);
+}
+
+function forgotPassword() {
+  alert("User is trying to reset their password");
 }
