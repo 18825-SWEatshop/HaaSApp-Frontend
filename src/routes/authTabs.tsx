@@ -9,25 +9,32 @@ export default function AuthTabs() {
     const inactive = "text-gray-400 hover:text-gray-600";
 
     return (
-    <div className="w-80 mx-auto mb-4 flex items-center justify-center gap-2">
-        <Link
-        to="/login"
-        className={`${base} ${isLogin ? active : inactive}`}
-        >
-        Login
-        </Link>
+        <div className="w-96 mx-auto mb-4 grid grid-cols-[1fr_auto_1fr] items-center text-center">
+        {/* Left side - Login */}
+        <div className="text-right pr-2">
+            <Link
+            to="/login"
+            className={`${base} ${isLogin ? active : inactive}`}
+            >
+            Login
+            </Link>
+        </div>
 
+        {/* Center - OR bubble */}
         <span className="inline-flex items-center justify-center
-                        w-6 h-6 rounded-full border text-[10px] text-gray-500">
-        OR
+                        w-7 h-7 rounded-full border text-[10px] text-gray-500 mx-2">
+            OR
         </span>
 
-        <Link
-        to="/register"
-        className={`${base} ${!isLogin ? active : inactive}`}
-        >
-        Register
-        </Link>
-    </div>
+        {/* Right side - Register */}
+        <div className="text-left pl-2">
+            <Link
+            to="/register"
+            className={`${base} ${!isLogin ? active : inactive}`}
+            >
+            Register
+            </Link>
+        </div>
+        </div>
     );
 }
