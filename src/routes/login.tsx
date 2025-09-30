@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import AuthTabs from "~/routes/authTabs";
 
@@ -9,6 +9,15 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  function handleLogin() {
+    navigate({ to: "/projects" });
+  }
+
+  function forgotPassword() {
+    alert("User is trying to reset their password");
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -24,8 +33,8 @@ function Login() {
         />
 
         <div>
-          <label htmlFor="username" className="pe-4">
-            User ID
+          <label htmlFor="username" className="pe-4 text-gray-900 font-semibold">
+            Username
           </label>
           <input
             id="username"
@@ -36,7 +45,7 @@ function Login() {
         </div>
 
         <div>
-          <label htmlFor="password" className="pe-4">
+          <label htmlFor="password" className="pe-4 text-gray-900 font-semibold">
             Password
           </label>
           <input
@@ -51,7 +60,7 @@ function Login() {
         <button
           type="button"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={() => login(username)}
+          onClick={handleLogin}
         >
           Login
         </button>
@@ -66,12 +75,4 @@ function Login() {
       </div>
     </div>
   );
-}
-
-function login(username: string) {
-  alert(`Logged in as '${username}'`);
-}
-
-function forgotPassword() {
-  alert("User is trying to reset their password");
 }

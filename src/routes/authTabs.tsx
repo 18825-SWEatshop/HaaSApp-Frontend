@@ -9,9 +9,9 @@ export default function AuthTabs() {
     const inactive = "text-gray-400 hover:text-gray-600";
 
     return (
-        <div className="w-96 mx-auto mb-4 grid grid-cols-[1fr_auto_1fr] items-center text-center">
+        <div className="w-80 mx-auto mb-4 grid grid-cols-[1fr_auto_1fr] items-center text-center">
         {/* Left side - Login */}
-        <div className="text-right pr-2">
+        <div className="text-right pr-2 justify-self-start">
             <Link
             to="/login"
             className={`${base} ${isLogin ? active : inactive}`}
@@ -27,7 +27,7 @@ export default function AuthTabs() {
         </span>
 
         {/* Right side - Register */}
-        <div className="text-left pl-2">
+        <div className="text-left pl-2 justify-self-end">
             <Link
             to="/register"
             className={`${base} ${!isLogin ? active : inactive}`}

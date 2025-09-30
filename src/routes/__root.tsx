@@ -87,6 +87,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           >
             Register
           </Link>{" "}
+            <Link
+              to="/projects"
+              activeProps={{
+                className: "font-bold",
+              }}
+            >
+              Projects
+            </Link>{" "}
         </div>
         <hr />
         {children}
