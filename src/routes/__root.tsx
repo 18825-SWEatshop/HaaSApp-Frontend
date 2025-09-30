@@ -70,7 +70,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <div className="p-2 flex gap-2 text-lg">
+        {/* <div className="p-2 flex gap-2 text-lg">
           <Link
             to="/login"
             activeProps={{
@@ -95,7 +95,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             >
               Projects
             </Link>{" "}
-        </div>
+        </div> */}
         <hr />
         {children}
         <TanStackRouterDevtools position="bottom-right" />
