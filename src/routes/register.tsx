@@ -42,19 +42,6 @@ function Register() {
                 </div>
 
                 <div>
-                    <label htmlFor="email" className="pe-4 text-gray-900 font-semibold">
-                        Email address
-                    </label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="border rounded w-full px-2 py-1"
-                    />
-                </div>
-
-                <div>
                     <label htmlFor="pw" className="pe-4 text-gray-900 font-semibold">
                         Password
                     </label>
