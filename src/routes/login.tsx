@@ -11,8 +11,20 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  function handleLogin() {
-    navigate({ to: "/projects" });
+  async function handleLogin() {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || "Login failed");
+      const { token } = await res.json();
+      localStorage.setItem("token", token);
+      navigate({ to: "/projects" });
+    } catch (e: any) {
+      alert(e.message);
+    }
   }
 
   function forgotPassword() {

@@ -12,8 +12,20 @@ function Register() {
     const [pw, setPw] = useState("");
     const navigate = useNavigate();
 
-    function handleRegister() {
-        navigate({ to: "/projects" });
+    async function handleRegister() {
+        try {
+            const res = await fetch("http://127.0.0.1:8000/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name, password: pw }),
+            });
+            if (!res.ok) throw new Error((await res.json()).detail || "Register failed");
+            const { token } = await res.json();
+            localStorage.setItem("token", token);
+            navigate({ to: "/projects" });
+        } catch (e: any) {
+            alert(e.message);
+        }
     }
 
     return (
