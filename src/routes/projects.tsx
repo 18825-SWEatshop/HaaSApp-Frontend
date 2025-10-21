@@ -8,9 +8,20 @@ export const Route = createFileRoute("/projects")({
 type HWSetName = 'HWSet1' | 'HWSet2';
 
 function ProjectsPage() {
+  // ─────────────────────────────────────────────
+  // API base & auth (new)
+  // ─────────────────────────────────────────────
+  const API = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000";
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
   // Project management state
   const [projectName, setProjectName] = useState("");
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState("");                // used for CREATE now (unique ID)
+  const [projectDescription, setProjectDescription] = useState(""); // new: description for CREATE
+  const [authorizedUsers, setAuthorizedUsers] = useState("");       // new: comma-separated list for CREATE
+
+  // Login project state (new separate state so CREATE and LOGIN don't fight over the same field)
+  const [loginProjectId, setLoginProjectId] = useState("");
 
   // HWSet state (mocked for now, replace with DB integration later)
   const [hwSets, setHwSets] = useState([
@@ -20,14 +31,70 @@ function ProjectsPage() {
   // User input for check-in/out (single field per HWSet)
   const [hwInput, setHwInput] = useState<Record<HWSetName, number>>({ HWSet1: 0, HWSet2: 0 });
 
-  function handleCreateProject() {
-    alert(`Project '${projectName}' created!`);
-    setProjectName("");
+  // ─────────────────────────────────────────────
+  // Handlers: create / login (now call backend)
+  // ─────────────────────────────────────────────
+  async function handleCreateProject() {
+    try {
+      if (!token) {
+        alert("Please log in first.");
+        return;
+      }
+      const body = {
+        projectId: projectId.trim(),
+        name: projectName.trim(),
+        description: projectDescription.trim(),
+        authorizedUsers: authorizedUsers
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      };
+      const res = await fetch(`${API}/projects/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || "Create failed");
+      alert(`Project created: ${data.projectId}`);
+
+      // reset form
+      setProjectName("");
+      setProjectId("");
+      setProjectDescription("");
+      setAuthorizedUsers("");
+    } catch (err: any) {
+      alert(err?.message ?? String(err));
+    }
   }
 
-  function handleLoginProject() {
-    alert(`Logged into project with ID: ${projectId}`);
-    setProjectId("");
+  async function handleLoginProject() {
+    try {
+      if (!token) {
+        alert("Please log in first.");
+        return;
+      }
+      const res = await fetch(`${API}/projects/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ projectId: loginProjectId.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || "Login failed");
+
+      // store selected project if needed later
+      localStorage.setItem("projectId", data.projectId);
+      alert(`Logged into project: ${data.name}`);
+      setLoginProjectId("");
+    } catch (err: any) {
+      alert(err?.message ?? String(err));
+    }
   }
 
   // Handlers for checkout/check-in (mocked, no DB yet)
@@ -65,6 +132,7 @@ function ProjectsPage() {
         {/* Project Management Section */}
         <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-96">
           <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">Project Management</h1>
+
           {/* Create Project */}
           <div className="flex flex-col gap-2">
             <label htmlFor="projectName" className="font-semibold text-gray-900">Create a new project</label>
@@ -75,22 +143,50 @@ function ProjectsPage() {
               className="border rounded w-full px-2 py-1"
               placeholder="Project Name"
             />
-            <button
-              type="button"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded mt-2"
-              onClick={handleCreateProject}
-              disabled={!projectName.trim()}
-            >
-              Create Project
-            </button>
-          </div>
-          {/* Login to Project */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="projectId" className="font-semibold text-gray-900">Login to existing project</label>
+            {/* new: unique project ID for CREATE */}
             <input
               id="projectId"
               value={projectId}
               onChange={e => setProjectId(e.target.value)}
+              className="border rounded w-full px-2 py-1"
+              placeholder="Project ID (unique)"
+            />
+            {/* new: description for CREATE */}
+            <input
+              id="projectDescription"
+              value={projectDescription}
+              onChange={e => setProjectDescription(e.target.value)}
+              className="border rounded w-full px-2 py-1"
+              placeholder="Project Description"
+            />
+            {/* new: authorized users (comma-separated) for CREATE */}
+            <input
+              id="authorizedUsers"
+              value={authorizedUsers}
+              onChange={e => setAuthorizedUsers(e.target.value)}
+              className="border rounded w-full px-2 py-1"
+              placeholder="Authorized Users (comma-separated)"
+            />
+            <button
+              type="button"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded mt-2"
+              onClick={handleCreateProject}
+              disabled={
+                !projectName.trim() ||
+                !projectId.trim()
+              }
+            >
+              Create Project
+            </button>
+          </div>
+
+          {/* Login to Project */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="loginProjectId" className="font-semibold text-gray-900">Login to existing project</label>
+            <input
+              id="loginProjectId"
+              value={loginProjectId}
+              onChange={e => setLoginProjectId(e.target.value)}
               className="border rounded w-full px-2 py-1"
               placeholder="Project ID"
             />
@@ -98,14 +194,15 @@ function ProjectsPage() {
               type="button"
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded mt-2"
               onClick={handleLoginProject}
-              disabled={!projectId.trim()}
+              disabled={!loginProjectId.trim()}
             >
               Login to Project
             </button>
           </div>
         </div>
+
         {/* Resources Management Section */}
-  <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem]">
+        <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem]">
           <h2 className="text-2xl font-bold text-center mb-2 text-gray-900">Resources</h2>
           {/* HWSet Capacity & Availability */}
           <div className="flex flex-col gap-16">
@@ -132,7 +229,12 @@ function ProjectsPage() {
                       min={0}
                       max={set.capacity}
                       value={hwInput[hwset]}
-                      onChange={e => setHwInput((prev) => ({ ...prev, [hwset]: Math.max(0, Math.min(set.capacity, Number(e.target.value))) }))}
+                      onChange={e =>
+                        setHwInput((prev) => ({
+                          ...prev,
+                          [hwset]: Math.max(0, Math.min(set.capacity, Number(e.target.value))),
+                        }))
+                      }
                       className="border rounded w-20 px-2 py-1"
                     />
                     <button
