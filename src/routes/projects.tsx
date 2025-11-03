@@ -1,39 +1,74 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
+import { ProjectCard } from "../components/ProjectCard";
 
 export const Route = createFileRoute("/projects")({
   component: ProjectsPage,
 });
 
-type HWSetName = 'HWSet1' | 'HWSet2';
-
 function ProjectsPage() {
   // ─────────────────────────────────────────────
-  // API base & auth (new)
+  // API base & auth
   // ─────────────────────────────────────────────
   const API = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000";
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Project management state
-  const [projectName, setProjectName] = useState("");
-  const [projectId, setProjectId] = useState("");                // used for CREATE now (unique ID)
-  const [projectDescription, setProjectDescription] = useState(""); // new: description for CREATE
-  const [authorizedUsers, setAuthorizedUsers] = useState("");       // new: comma-separated list for CREATE
 
-  // Login project state (new separate state so CREATE and LOGIN don't fight over the same field)
+  // Project list state
+  const dummyProject = {
+    projectId: "dummy123",
+    name: "Dummy Project",
+    description: "This is a dummy project for testing purposes.",
+    owner: "testuser",
+    authorizedUsers: ["testuser", "alice", "bob"],
+  }; //DUMMY PROJECT: REMOVE FOR PRODUCTION
+
+  const [projects, setProjects] = useState<Array<any>>([dummyProject]); //REMOVE DUMMY PROJECT FOR PRODUCTION
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State for create/login form
+  const [projectName, setProjectName] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [authorizedUsers, setAuthorizedUsers] = useState("");
   const [loginProjectId, setLoginProjectId] = useState("");
 
-  // HWSet state (mocked for now, replace with DB integration later)
-  const [hwSets, setHwSets] = useState([
-    { name: "HWSet1", capacity: 100, available: 60 },
-    { name: "HWSet2", capacity: 200, available: 150 },
-  ]);
-  // User input for check-in/out (single field per HWSet)
-  const [hwInput, setHwInput] = useState<Record<HWSetName, number>>({ HWSet1: 0, HWSet2: 0 });
+  // Fetch projects user has joined/created
+  React.useEffect(() => {
+    async function fetchProjects() {
+      if (!token) {
+        alert("Please log in first.");
+        setLoading(false);
+        return;
+      }
+      try {
+        // API endpoint: /projects/user-projects (GET)
+        const res = await fetch(`${API}/projects/user-projects`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => []);
+        if (!res.ok) throw new Error(data?.detail || "Failed to fetch projects");
+        setProjects(data.projects || []);
+      } catch (err: any) {
+        setError(err?.message ?? String(err));
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, [token, API]);
 
-  // ─────────────────────────────────────────────
-  // Handlers: create / login (now call backend)
-  // ─────────────────────────────────────────────
+  // Details navigation
+  function handleDetails(projectId: string) {
+    window.location.href = `/projects/${projectId}`;
+  }
+
+  // Handler for creating a project
   async function handleCreateProject() {
     try {
       if (!token) {
@@ -60,17 +95,23 @@ function ProjectsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Create failed");
       alert(`Project created: ${data.projectId}`);
-
-      // reset form
       setProjectName("");
       setProjectId("");
       setProjectDescription("");
       setAuthorizedUsers("");
+      // Optionally refresh project list
+      setLoading(true);
+      setError(null);
+      // Re-fetch projects
+      React.startTransition(() => {
+        setProjects((prev) => [...prev, data]);
+      });
     } catch (err: any) {
       alert(err?.message ?? String(err));
     }
   }
 
+  // Handler for logging into a project
   async function handleLoginProject() {
     try {
       if (!token) {
@@ -87,48 +128,52 @@ function ProjectsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Login failed");
-
-      // store selected project if needed later
       localStorage.setItem("projectId", data.projectId);
       alert(`Logged into project: ${data.name}`);
       setLoginProjectId("");
+      // Optionally refresh project list
+      setLoading(true);
+      setError(null);
+      // Re-fetch projects
+      React.startTransition(() => {
+        setProjects((prev) => {
+          if (!prev.some(p => p.projectId === data.projectId)) {
+            return [...prev, data];
+          }
+          return prev;
+        });
+      });
     } catch (err: any) {
       alert(err?.message ?? String(err));
     }
   }
 
-  // Handlers for checkout/check-in (mocked, no DB yet)
-  function handleCheckout(hwset: HWSetName) {
-    setHwSets((prev) =>
-      prev.map((set) =>
-        set.name === hwset
-          ? {
-              ...set,
-              available: set.available - hwInput[hwset],
-            }
-          : set
-      )
+  let projectListContent;
+  if (loading) {
+    projectListContent = <div className="text-gray-700 text-center">Loading projects...</div>;
+  } else if (error) {
+    projectListContent = <div className="text-red-600 text-center">{error}</div>;
+  } else if (projects.length === 0) {
+    projectListContent = <div className="text-gray-700 text-center">No projects found.</div>;
+  } else {
+    projectListContent = (
+      <div className="flex flex-col gap-4">
+        {projects.map((project: any) => (
+          <ProjectCard key={project.projectId} project={project} />
+        ))}
+      </div>
     );
-    setHwInput((prev) => ({ ...prev, [hwset]: 0 }));
-  }
-
-  function handleCheckin(hwset: HWSetName) {
-    setHwSets((prev) =>
-      prev.map((set) =>
-        set.name === hwset
-          ? {
-              ...set,
-              available: set.available + hwInput[hwset],
-            }
-          : set
-      )
-    );
-    setHwInput((prev) => ({ ...prev, [hwset]: 0 }));
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="flex flex-row gap-8">
+        {/* Project List Section */}
+        <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem]">
+          <h2 className="text-2xl font-bold text-center mb-2 text-gray-900">Project List</h2>
+          {projectListContent}
+        </div>
+        
         {/* Project Management Section */}
         <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-96">
           <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">Project Management</h1>
@@ -198,65 +243,6 @@ function ProjectsPage() {
             >
               Login to Project
             </button>
-          </div>
-        </div>
-
-        {/* Resources Management Section */}
-        <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem]">
-          <h2 className="text-2xl font-bold text-center mb-2 text-gray-900">Resources</h2>
-          {/* HWSet Capacity & Availability */}
-          <div className="flex flex-col gap-16">
-            {hwSets.map((set) => {
-              const hwset = set.name as HWSetName;
-              return (
-                <div key={set.name} className="flex flex-row items-center gap-4 justify-between">
-                  {/* Capacity & Available, left-aligned and vertically aligned */}
-                  <div className="flex flex-col gap-1 w-1/2 min-w-[10rem]">
-                    <span className="font-semibold text-gray-900 w-24 block">{set.name}:</span>
-                    <div className="flex flex-row gap-2 items-center mt-1">
-                      <span className="text-gray-700 text-left w-20 block">Capacity:</span>
-                      <span className="font-mono text-gray-900">{set.capacity}</span>
-                    </div>
-                    <div className="flex flex-row gap-2 items-center mt-1">
-                      <span className="text-gray-700 text-left w-20 block">Available:</span>
-                      <span className="font-mono text-gray-900">{set.available}</span>
-                    </div>
-                  </div>
-                  {/* Single input for both actions, both buttons */}
-                  <div className="flex flex-row gap-2 items-center min-w-[20rem]">
-                    <input
-                      type="number"
-                      min={0}
-                      max={set.capacity}
-                      value={hwInput[hwset]}
-                      onChange={e =>
-                        setHwInput((prev) => ({
-                          ...prev,
-                          [hwset]: Math.max(0, Math.min(set.capacity, Number(e.target.value))),
-                        }))
-                      }
-                      className="border rounded w-20 px-2 py-1"
-                    />
-                    <button
-                      type="button"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded whitespace-nowrap"
-                      onClick={() => handleCheckout(hwset)}
-                      disabled={hwInput[hwset] <= 0 || hwInput[hwset] > set.available}
-                    >
-                      Checkout
-                    </button>
-                    <button
-                      type="button"
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded whitespace-nowrap"
-                      onClick={() => handleCheckin(hwset)}
-                      disabled={hwInput[hwset] <= 0 || hwInput[hwset] > (set.capacity - set.available)}
-                    >
-                      Check-in
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
