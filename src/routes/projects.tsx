@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { ProjectCard } from "../components/ProjectCard";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const Route = createFileRoute("/projects")({
   component: ProjectsPage,
 });
@@ -10,7 +12,6 @@ function ProjectsPage() {
   // ─────────────────────────────────────────────
   // API base & auth
   // ─────────────────────────────────────────────
-  const API = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000";
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
 
@@ -44,7 +45,7 @@ function ProjectsPage() {
       }
       try {
         // API endpoint: /projects/user-projects (GET)
-        const res = await fetch(`${API}/projects/user-projects`, {
+        const res = await fetch(`${baseUrl}/projects/user-projects`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -61,7 +62,7 @@ function ProjectsPage() {
       }
     }
     fetchProjects();
-  }, [token, API]);
+  }, [token, baseUrl]);
 
   // Details navigation
   function handleDetails(projectId: string) {
@@ -84,7 +85,7 @@ function ProjectsPage() {
           .map((s) => s.trim())
           .filter(Boolean),
       };
-      const res = await fetch(`${API}/projects/create`, {
+      const res = await fetch(`${baseUrl}/projects/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +119,7 @@ function ProjectsPage() {
         alert("Please log in first.");
         return;
       }
-      const res = await fetch(`${API}/projects/login`, {
+      const res = await fetch(`${baseUrl}/projects/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
