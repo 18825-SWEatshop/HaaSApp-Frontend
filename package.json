@@ -4,9 +4,12 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "start": "vite"
+    "dev": "vite dev",
+    "build": "vite build && tsc --noEmit",
+    "start": "node .output/server/index.mjs"
   },
   "dependencies": {
+    "@tanstack/nitro-v2-vite-plugin": "^1.133.19",
     "@tanstack/react-router": "^1.132.7",
     "@tanstack/react-router-devtools": "^1.132.7",
     "@tanstack/react-start": "^1.132.7",
