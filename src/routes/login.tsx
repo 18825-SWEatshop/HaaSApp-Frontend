@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import AuthTabs from "~/routes/authTabs";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const Route = createFileRoute("/login")({
   component: Login,
 });
@@ -13,7 +15,7 @@ function Login() {
 
   async function handleLogin() {
     try {
-      const res = await fetch("http://127.0.0.1:8000/login", {
+      const res = await fetch(`${baseUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

@@ -2,19 +2,20 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import AuthTabs from "~/routes/authTabs";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 export const Route = createFileRoute("/register")({
     component: Register,
 });
 
 function Register() {
     const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
     const [pw, setPw] = useState("");
     const navigate = useNavigate();
 
     async function handleRegister() {
         try {
-            const res = await fetch("http://127.0.0.1:8000/register", {
+            const res = await fetch(`${baseUrl}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: pw }),

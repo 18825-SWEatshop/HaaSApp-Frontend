@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import HardwareManagement from "../../components/HardwareManagement";
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 function ProjectDetails() {
   const { projectId } = Route.useParams() as { projectId?: string };
   const navigate = Route.useNavigate();
-  const API = (import.meta as any).env?.VITE_API_URL ?? "http://127.0.0.1:8000";
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   const [project, setProject] = useState<any>(null);
@@ -20,7 +21,7 @@ function ProjectDetails() {
         return;
       }
       try {
-        const res = await fetch(`${API}/projects/details`, {
+        const res = await fetch(`${baseUrl}/projects/details`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -42,7 +43,7 @@ function ProjectDetails() {
       }
     }
     fetchProjectDetails();
-  }, [projectId, token, API]);
+  }, [projectId, token, baseUrl]);
 
   let content;
   if (loading) {
