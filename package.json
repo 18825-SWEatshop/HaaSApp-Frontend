@@ -4,9 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build && tsc --noEmit",
-    "start": "node .output/server/index.mjs"
+    "start": "vite"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.132.7",
