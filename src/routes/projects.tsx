@@ -84,18 +84,29 @@ function ProjectsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Create failed");
-      // alert(`Project created: ${data.projectId}`);
       setProjectName("");
       setProjectId("");
       setProjectDescription("");
       setAuthorizedUsers("");
-      // Optionally refresh project list
       setLoading(true);
       setError(null);
-      // Re-fetch projects
-      React.startTransition(() => {
-        setProjects((prev) => [...prev, data]);
-      });
+      // Fetch all projects after creation
+      try {
+        const resProjects = await fetch(`${baseUrl}/projects/my-projects`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const projectsData = await resProjects.json().catch(() => []);
+        if (!resProjects.ok) throw new Error(projectsData?.detail || "Failed to fetch projects");
+        setProjects(Array.isArray(projectsData) ? projectsData : []);
+      } catch (err: any) {
+        setError(err?.message ?? String(err));
+      } finally {
+        setLoading(false);
+      }
     } catch (err: any) {
       alert(err?.message ?? String(err));
     }
