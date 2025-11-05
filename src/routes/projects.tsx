@@ -14,17 +14,7 @@ function ProjectsPage() {
   // ─────────────────────────────────────────────
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-
-  // Project list state
-  const dummyProject = {
-    projectId: "dummy123",
-    name: "Dummy Project",
-    description: "This is a dummy project for testing purposes.",
-    owner: "testuser",
-    authorizedUsers: ["testuser", "alice", "bob"],
-  }; //DUMMY PROJECT: REMOVE FOR PRODUCTION
-
-  const [projects, setProjects] = useState<Array<any>>([dummyProject]); //REMOVE DUMMY PROJECT FOR PRODUCTION
+  const [projects, setProjects] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,8 +34,7 @@ function ProjectsPage() {
         return;
       }
       try {
-        // API endpoint: /projects/user-projects (GET)
-        const res = await fetch(`${baseUrl}/projects/user-projects`, {
+        const res = await fetch(`${baseUrl}/projects/my-projects`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -54,7 +43,7 @@ function ProjectsPage() {
         });
         const data = await res.json().catch(() => []);
         if (!res.ok) throw new Error(data?.detail || "Failed to fetch projects");
-        setProjects(data.projects || []);
+        setProjects(Array.isArray(data) ? data : []);
       } catch (err: any) {
         setError(err?.message ?? String(err));
       } finally {
@@ -95,7 +84,7 @@ function ProjectsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Create failed");
-      alert(`Project created: ${data.projectId}`);
+      // alert(`Project created: ${data.projectId}`);
       setProjectName("");
       setProjectId("");
       setProjectDescription("");
@@ -130,7 +119,7 @@ function ProjectsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Login failed");
       localStorage.setItem("projectId", data.projectId);
-      alert(`Logged into project: ${data.name}`);
+      // alert(`Logged into project: ${data.name}`);
       setLoginProjectId("");
       // Optionally refresh project list
       setLoading(true);

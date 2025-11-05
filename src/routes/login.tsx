@@ -29,10 +29,6 @@ function Login() {
     }
   }
 
-  function forgotPassword() {
-    alert("User is trying to reset their password");
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       {/* Tabs ABOVE the box */}
@@ -77,14 +73,6 @@ function Login() {
           onClick={handleLogin}
         >
           Login
-        </button>
-
-        <button
-          type="button"
-          className="text-blue-600 underline hover:text-blue-800 bg-transparent border-none p-0 cursor-pointer"
-          onClick={forgotPassword}
-        >
-          Forgot your password?
         </button>
       </div>
     </div>
