@@ -55,7 +55,7 @@ function ProjectsPage() {
 
   // Details navigation
   function handleDetails(projectId: string) {
-    window.location.href = `/projects/${projectId}`;
+    Route.useNavigate()({ to: `/projects/${projectId}` });
   }
 
   // Handler for creating a project
