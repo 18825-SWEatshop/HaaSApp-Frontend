@@ -1,4 +1,9 @@
-export function ProjectCard({ project }: { readonly project: any }) {
+interface ProjectCardProps {
+  readonly project: any;
+  readonly onDetails?: (projectId: string) => void;
+}
+
+export function ProjectCard({ project, onDetails }: ProjectCardProps) {
   return (
     <div className="bg-white border border-gray-300 rounded-lg p-6 mb-4 w-full flex flex-col">
       <div className="flex flex-row items-center justify-between">
@@ -10,7 +15,13 @@ export function ProjectCard({ project }: { readonly project: any }) {
         <button
           type="button"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded"
-          onClick={() => window.location.href = `/projects/${project.projectId}`}
+          onClick={() => {
+            if (onDetails) {
+              onDetails(project.projectId);
+              return;
+            }
+            window.location.href = `/projects/${project.projectId}`;
+          }}
         >
           Details
         </button>

@@ -13,7 +13,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProjectsProjectIdRouteRouteImport } from './routes/projects/$projectId.route'
+import { Route as ProjectsProjectIdRouteRouteImport } from './components/ProjectDetailsModal'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',

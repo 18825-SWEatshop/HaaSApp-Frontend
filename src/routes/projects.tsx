@@ -1,19 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
 import { ProjectCard } from "../components/ProjectCard";
+import ProjectDetailsModal from "../components/ProjectDetailsModal";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 export const Route = createFileRoute("/projects")({
-  component: ProjectsPage,
+  component: Projects,
 });
-
-function ProjectsPage() {
+function Projects() {
   // ─────────────────────────────────────────────
   // API base & auth
   // ─────────────────────────────────────────────
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +54,13 @@ function ProjectsPage() {
     fetchProjects();
   }, [token, baseUrl]);
 
-  // Details navigation
-  function handleDetails(projectId: string) {
-    Route.useNavigate()({ to: `/projects/${projectId}` });
-  }
+  const handleDetails = React.useCallback((projectId: string) => {
+    setSelectedProjectId(projectId);
+  }, []);
+
+  const handleCloseModal = React.useCallback(() => {
+    setSelectedProjectId(null);
+  }, []);
 
   // Handler for creating a project
   async function handleCreateProject() {
@@ -130,19 +134,14 @@ function ProjectsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.detail || "Login failed");
       localStorage.setItem("projectId", data.projectId);
-      // alert(`Logged into project: ${data.name}`);
       setLoginProjectId("");
       // Optionally refresh project list
       setLoading(true);
       setError(null);
       // Re-fetch projects
+      const mergeProjects = (prev: any[]) => (prev.some(p => p.projectId === data.projectId) ? prev : [...prev, data]);
       React.startTransition(() => {
-        setProjects((prev) => {
-          if (!prev.some(p => p.projectId === data.projectId)) {
-            return [...prev, data];
-          }
-          return prev;
-        });
+        setProjects(mergeProjects);
       });
     } catch (err: any) {
       alert(err?.message ?? String(err));
@@ -160,7 +159,11 @@ function ProjectsPage() {
     projectListContent = (
       <div className="flex flex-col gap-4">
         {projects.map((project: any) => (
-          <ProjectCard key={project.projectId} project={project} />
+          <ProjectCard
+            key={project.projectId}
+            project={project}
+            onDetails={handleDetails}
+          />
         ))}
       </div>
     );
@@ -247,6 +250,12 @@ function ProjectsPage() {
           </div>
         </div>
       </div>
+      {selectedProjectId ? (
+        <ProjectDetailsModal
+          projectId={selectedProjectId}
+          onClose={handleCloseModal}
+        />
+      ) : null}
     </div>
   );
 }
