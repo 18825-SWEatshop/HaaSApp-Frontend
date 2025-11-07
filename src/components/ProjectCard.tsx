@@ -5,7 +5,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, onDetails }: ProjectCardProps) {
   return (
-    <div className="bg-white border border-gray-300 rounded-lg p-6 mb-4 w-full flex flex-col">
+  <div className="bg-white border border-gray-300 rounded-lg p-6 w-full flex flex-col">
       <div className="flex flex-row items-center justify-between">
         <div>
           <div className="font-bold text-lg text-gray-900">{project.name}</div>

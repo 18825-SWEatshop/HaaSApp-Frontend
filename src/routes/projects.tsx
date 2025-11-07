@@ -157,7 +157,7 @@ function Projects() {
     projectListContent = <div className="text-gray-700 text-center">No projects found.</div>;
   } else {
     projectListContent = (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {projects.map((project: any) => (
           <ProjectCard
             key={project.projectId}
@@ -173,9 +173,9 @@ function Projects() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="flex flex-row gap-8">
         {/* Project List Section */}
-        <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem]">
-          <h2 className="text-2xl font-bold text-center mb-2 text-gray-900">Project List</h2>
-          {projectListContent}
+        <div className="flex flex-col gap-6 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem] h-[32rem]">
+          <h2 className="text-2xl font-bold text-center text-gray-900">Project List</h2>
+          <div className="flex-1 overflow-y-auto pr-2">{projectListContent}</div>
         </div>
         
         {/* Project Management Section */}
