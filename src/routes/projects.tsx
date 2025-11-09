@@ -12,7 +12,10 @@ function Projects() {
   // ─────────────────────────────────────────────
   // API base & auth
   // ─────────────────────────────────────────────
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const [token, setToken] = useState<string | null>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("token") : null
+  );
+  const navigate = Route.useNavigate();
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Array<any>>([]);
@@ -26,11 +29,16 @@ function Projects() {
   const [authorizedUsers, setAuthorizedUsers] = useState("");
   const [loginProjectId, setLoginProjectId] = useState("");
 
+  React.useEffect(() => {
+    if (!token) {
+      navigate({ to: "/login" });
+    }
+  }, [token, navigate]);
+
   // Fetch projects user has joined/created
   React.useEffect(() => {
     async function fetchProjects() {
       if (!token) {
-        alert("Please log in first.");
         setLoading(false);
         return;
       }
@@ -61,6 +69,19 @@ function Projects() {
   const handleCloseModal = React.useCallback(() => {
     setSelectedProjectId(null);
   }, []);
+
+  const handleLogout = React.useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("projectId");
+    }
+    setSelectedProjectId(null);
+    setProjects([]);
+    setError(null);
+    setLoading(false);
+    setToken(null);
+    navigate({ to: "/login" });
+  }, [navigate]);
 
   // Handler for creating a project
   async function handleCreateProject() {
@@ -170,7 +191,7 @@ function Projects() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div className="min-h-screen w-full flex flex-col items-center bg-gray-100 py-20">
       <div className="flex flex-row gap-8">
         {/* Project List Section */}
         <div className="flex flex-col gap-6 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem] h-[32rem]">
@@ -179,8 +200,8 @@ function Projects() {
         </div>
         
         {/* Project Management Section */}
-        <div className="flex flex-col gap-8 p-8 bg-white border border-black rounded w-96">
-          <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">Project Management</h1>
+        <div className="flex flex-col gap-6 p-8 bg-white border border-black rounded w-96">
+          <h1 className="text-2xl font-bold text-center text-gray-900">Project Management</h1>
 
           {/* Create Project */}
           <div className="flex flex-col gap-2">
@@ -256,6 +277,15 @@ function Projects() {
           onClose={handleCloseModal}
         />
       ) : null}
+      <div className="w-full max-w-6xl flex justify-center px-8 pt-6">
+        <button
+          type="button"
+          className="bg-gray-900 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
