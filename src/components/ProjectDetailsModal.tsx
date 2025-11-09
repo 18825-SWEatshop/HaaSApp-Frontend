@@ -47,23 +47,23 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
 
   let content;
   if (loading) {
-    content = <div className="text-gray-700 text-center">Loading project details...</div>;
+    content = <div className="text-black text-center">Loading project details...</div>;
   } else if (error) {
     content = <div className="text-red-600 text-center">{error}</div>;
   } else if (project) {
     content = (
       <>
-        <div className="flex flex-col gap-2">
-          <div className="font-bold text-lg text-gray-900">{project.name}</div>
-          <div className="text-gray-700 text-sm">ID: {project.projectId}</div>
-          <div className="text-gray-700 text-sm">Description: {project.description}</div>
-          <div className="text-gray-700 text-sm">Owner: {project.owner}</div>
-          <div className="text-gray-700 text-sm">Authorized Users: {project.authorizedUsers?.join(", ")}</div>
+        <div className="flex flex-col gap-2 text-black">
+          <div className="font-bold text-lg">{project.name}</div>
+          <div className="text-sm">ID: {project.projectId}</div>
+          <div className="text-sm">Description: {project.description}</div>
+          <div className="text-sm">Owner: {project.owner}</div>
+          <div className="text-sm">Authorized Users: {project.authorizedUsers?.join(", ")}</div>
         </div>
         <div className="mt-6">
-          <h3 className="font-semibold text-gray-900 mb-2">Hardware Management</h3>
-          <HardwareManagement label="HWSet1" projectId={project.projectId} />
-          <HardwareManagement label="HWSet2" projectId={project.projectId} />
+          <h3 className="font-semibold text-black mb-2">Hardware Management</h3>
+          <HardwareManagement label="HWSet1" setNumber={1} />
+          <HardwareManagement label="HWSet2" setNumber={2} />
         </div>
       </>
     );
@@ -73,16 +73,18 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative flex flex-col gap-8 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem] max-h-[90vh] overflow-y-auto">
-        <button
-          type="button"
-          className="absolute right-4 top-4 text-sm font-semibold text-blue-600 hover:text-blue-700"
-          onClick={onClose}
-        >
-          Return to Projects
-        </button>
-        <h2 className="text-2xl font-bold text-center mb-2 text-gray-900">Project Details</h2>
+  <div className="relative flex flex-col gap-6 p-8 bg-white border border-black rounded w-[42rem] min-w-[28rem] max-w-[48rem] max-h-[90vh] overflow-y-auto text-black">
+        <h2 className="text-2xl font-bold text-center">Project Details</h2>
         {content}
+        <div className="flex justify-center pt-4">
+          <button
+            type="button"
+            className="px-4 py-2 border border-blue-600 rounded bg-white text-sm font-semibold text-blue-600 hover:bg-gray-100"
+            onClick={onClose}
+          >
+            Return to Projects
+          </button>
+        </div>
       </div>
     </div>
   );
