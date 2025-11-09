@@ -67,12 +67,6 @@ function Register() {
                     />
                 </div>
 
-                <p className="text-sm text-gray-600">
-                    Your personal data will be used to support your experience throughout
-                    this website, to manage access to your account, and for other purposes
-                    described in our privacy policy.
-                </p>
-
                 <button
                     type="button"
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded"

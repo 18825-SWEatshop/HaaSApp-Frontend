@@ -21,6 +21,7 @@ function Projects() {
   const [projects, setProjects] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
 
   // State for create/login form
   const [projectName, setProjectName] = useState("");
@@ -31,36 +32,61 @@ function Projects() {
 
   React.useEffect(() => {
     if (!token) {
+      setUsername(null);
       navigate({ to: "/login" });
     }
   }, [token, navigate]);
 
-  // Fetch projects user has joined/created
   React.useEffect(() => {
-    async function fetchProjects() {
-      if (!token) {
-        setLoading(false);
+    if (!token) {
+      setUsername(null);
+      return;
+    }
+    try {
+      const [, payloadSegment] = token.split(".");
+      if (!payloadSegment) {
+        setUsername(null);
         return;
       }
-      try {
-        const res = await fetch(`${baseUrl}/projects/my-projects`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json().catch(() => []);
-        if (!res.ok) throw new Error(data?.detail || "Failed to fetch projects");
-        setProjects(Array.isArray(data) ? data : []);
-      } catch (err: any) {
-        setError(err?.message ?? String(err));
-      } finally {
-        setLoading(false);
-      }
+  const base64 = payloadSegment.replaceAll("-", "+").replaceAll("_", "/");
+      const padded = base64 + "=".repeat((4 - (base64.length % 4 || 4)) % 4);
+      const decoded = JSON.parse(window.atob(padded));
+      setUsername(typeof decoded?.u === "string" ? decoded.u : null);
+    } catch {
+      setUsername(null);
     }
-    fetchProjects();
-  }, [token, baseUrl]);
+  }, [token]);
+
+  // Fetch projects user has joined/created
+  const fetchProjects = React.useCallback(async () => {
+    if (!token) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${baseUrl}/projects/my-projects`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json().catch(() => []);
+      if (!res.ok) throw new Error(data?.detail || "Failed to fetch projects");
+      setProjects(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  React.useEffect(() => {
+    void fetchProjects();
+  }, [fetchProjects]);
 
   const handleDetails = React.useCallback((projectId: string) => {
     setSelectedProjectId(projectId);
@@ -80,6 +106,7 @@ function Projects() {
     setError(null);
     setLoading(false);
     setToken(null);
+    setUsername(null);
     navigate({ to: "/login" });
   }, [navigate]);
 
@@ -113,25 +140,7 @@ function Projects() {
       setProjectId("");
       setProjectDescription("");
       setAuthorizedUsers("");
-      setLoading(true);
-      setError(null);
-      // Fetch all projects after creation
-      try {
-        const resProjects = await fetch(`${baseUrl}/projects/my-projects`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const projectsData = await resProjects.json().catch(() => []);
-        if (!resProjects.ok) throw new Error(projectsData?.detail || "Failed to fetch projects");
-        setProjects(Array.isArray(projectsData) ? projectsData : []);
-      } catch (err: any) {
-        setError(err?.message ?? String(err));
-      } finally {
-        setLoading(false);
-      }
+      await fetchProjects();
     } catch (err: any) {
       alert(err?.message ?? String(err));
     }
@@ -144,7 +153,7 @@ function Projects() {
         alert("Please log in first.");
         return;
       }
-      const res = await fetch(`${baseUrl}/projects/login`, {
+      const res = await fetch(`${baseUrl}/projects/join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,14 +165,7 @@ function Projects() {
       if (!res.ok) throw new Error(data?.detail || "Login failed");
       localStorage.setItem("projectId", data.projectId);
       setLoginProjectId("");
-      // Optionally refresh project list
-      setLoading(true);
-      setError(null);
-      // Re-fetch projects
-      const mergeProjects = (prev: any[]) => (prev.some(p => p.projectId === data.projectId) ? prev : [...prev, data]);
-      React.startTransition(() => {
-        setProjects(mergeProjects);
-      });
+      await fetchProjects();
     } catch (err: any) {
       alert(err?.message ?? String(err));
     }
@@ -192,6 +194,11 @@ function Projects() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-gray-100 py-20">
+      {username ? (
+        <div className="w-full max-w-6xl px-8 pb-6 text-center text-gray-900 text-lg font-semibold">
+          {`Username: ${username}`}
+        </div>
+      ) : null}
       <div className="flex flex-row gap-8">
         {/* Project List Section */}
         <div className="flex flex-col gap-6 p-8 bg-white border border-black rounded w-[35rem] min-w-[20rem] h-[32rem]">
