@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import AuthTabs from "~/routes/authTabs";
+import AuthTabs from "~/components/AuthTabs";
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 

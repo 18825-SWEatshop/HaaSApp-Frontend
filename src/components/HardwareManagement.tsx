@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface HardwareManagementProps {
     setNumber: number;
@@ -32,7 +32,7 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
                 setIsLoading(false);
                 return;
             }
-            if (!API_URL) {
+            if (!baseUrl) {
                 setError('Hardware service is not configured.');
                 setIsLoading(false);
                 return;
@@ -47,8 +47,8 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
             try {
                 const headers = { Authorization: `Bearer ${token}` };
                 const [capacityRes, availabilityRes] = await Promise.all([
-                    axios.get(`${API_URL}/capacity/${setNumber}`, { headers }),
-                    axios.get(`${API_URL}/availability/${setNumber}`, { headers }),
+                    axios.get(`${baseUrl}/resources/capacity/${setNumber}`, { headers }),
+                    axios.get(`${baseUrl}/resources/availability/${setNumber}`, { headers }),
                 ]);
                 if (isCancelled) return;
                 const capacityValue = Number(capacityRes.data?.capacity ?? 0);
@@ -70,7 +70,7 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
         return () => {
             isCancelled = true;
         };
-    }, [projectId, setNumber, token, API_URL]);
+    }, [projectId, setNumber, token, baseUrl]);
 
     
 
@@ -85,7 +85,7 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
             setQuantity('');
             return;
         }
-        if (!API_URL) {
+        if (!baseUrl) {
             alert('Hardware service is not configured.');
             setQuantity('');
             return;
@@ -95,36 +95,43 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
             setQuantity('');
             return;
         }
-        if (qty > 0 && qty <= availability) {
-            try {
-                const { data } = await axios.post(
-                    `${API_URL}/checkout`,
-                    {
-                        setNumber,
-                        quantity: qty,
-                        projectId,
-                    },
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    },
-                );
-                const resource = data?.resource;
-                if (resource) {
-                    const updatedAvailability = Number(resource.availability ?? availability);
-                    const updatedCapacity = Number(resource.capacity ?? capacity);
-                    setAvailability(updatedAvailability);
-                    setCapacity(updatedCapacity);
-                    setAllocation(prev => prev + qty);
-                } else {
-                    setAvailability(prev => prev - qty);
-                    setAllocation(prev => prev + qty);
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Checkout failed');
-            }
+        if (qty <= 0) {
+            alert('Enter a positive quantity to check out hardware.');
+            return;
         }
-        setQuantity('');
+        if (qty > availability) {
+            alert('Cannot check out more hardware than is currently available.');
+            return;
+        }
+        try {
+            const { data } = await axios.post(
+                `${baseUrl}/resources/checkout`,
+                {
+                    setNumber,
+                    quantity: qty,
+                    projectId,
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                },
+            );
+            const resource = data?.resource;
+            if (resource) {
+                const updatedAvailability = Number(resource.availability ?? availability);
+                const updatedCapacity = Number(resource.capacity ?? capacity);
+                setAvailability(updatedAvailability);
+                setCapacity(updatedCapacity);
+                setAllocation(prev => prev + qty);
+            } else {
+                setAvailability(prev => prev - qty);
+                setAllocation(prev => prev + qty);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Check-out failed');
+        } finally {
+            setQuantity('');
+        }
     };
 
     const handleCheckin = async () => {
@@ -134,7 +141,7 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
             setQuantity('');
             return;
         }
-        if (!API_URL) {
+        if (!baseUrl) {
             alert('Hardware service is not configured.');
             setQuantity('');
             return;
@@ -144,36 +151,43 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
             setQuantity('');
             return;
         }
-        if (qty > 0 && availability + qty <= capacity) {
-            try {
-                const { data } = await axios.post(
-                    `${API_URL}/checkin`,
-                    {
-                        setNumber,
-                        quantity: qty,
-                        projectId,
-                    },
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    },
-                );
-                const resource = data?.resource;
-                if (resource) {
-                    const updatedAvailability = Number(resource.availability ?? availability);
-                    const updatedCapacity = Number(resource.capacity ?? capacity);
-                    setAvailability(updatedAvailability);
-                    setCapacity(updatedCapacity);
-                    setAllocation(prev => Math.max(prev - qty, 0));
-                } else {
-                    setAvailability(prev => prev + qty);
-                    setAllocation(prev => Math.max(prev - qty, 0));
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Check-in failed');
-            }
+        if (qty <= 0) {
+            alert('Enter a positive quantity to check in hardware.');
+            return;
         }
-        setQuantity('');
+        if (availability + qty > capacity) {
+            alert('Cannot check in beyond the hardware set capacity.');
+            return;
+        }
+        try {
+            const { data } = await axios.post(
+                `${baseUrl}/resources/checkin`,
+                {
+                    setNumber,
+                    quantity: qty,
+                    projectId,
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                },
+            );
+            const resource = data?.resource;
+            if (resource) {
+                const updatedAvailability = Number(resource.availability ?? availability);
+                const updatedCapacity = Number(resource.capacity ?? capacity);
+                setAvailability(updatedAvailability);
+                setCapacity(updatedCapacity);
+                setAllocation(prev => Math.max(prev - qty, 0));
+            } else {
+                setAvailability(prev => prev + qty);
+                setAllocation(prev => Math.max(prev - qty, 0));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Check-in failed');
+        } finally {
+            setQuantity('');
+        }
     };
 
     return (
@@ -195,7 +209,7 @@ const HardwareManagement: React.FC<HardwareManagementProps> = ({ setNumber, proj
                     min="0"
                     value={quantity}
                     onChange={handleQuantityChange}
-                    className="w-44 border border-black rounded px-2 py-1 text-black"
+                    className="w-44 border border-black rounded px-2 py-1 text-white"
                 />
                 <button
                     type="button"
