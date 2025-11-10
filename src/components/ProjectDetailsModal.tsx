@@ -32,9 +32,13 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data?.detail || "Failed to fetch project details");
+        const hardwareAllocations = Array.isArray(data?.hardwareAllocations)
+          ? data.hardwareAllocations
+          : [];
         setProject({
           ...data,
           projectId: data.projectID || data.projectId,
+          hardwareAllocations,
         });
       } catch (err: any) {
         setError(err?.message ?? String(err));
@@ -62,8 +66,16 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
         </div>
         <div className="mt-6">
           <h3 className="font-semibold text-black mb-2">Hardware Management</h3>
-          <HardwareManagement label="HWSet1" setNumber={1} />
-          <HardwareManagement label="HWSet2" setNumber={2} />
+          <HardwareManagement
+            setNumber={1}
+            projectId={project.projectId}
+            initialAllocation={project.hardwareAllocations?.[0] ?? 0}
+          />
+          <HardwareManagement
+            setNumber={2}
+            projectId={project.projectId}
+            initialAllocation={project.hardwareAllocations?.[1] ?? 0}
+          />
         </div>
       </>
     );
