@@ -35,10 +35,12 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
         const hardwareAllocations = Array.isArray(data?.hardwareAllocations)
           ? data.hardwareAllocations
           : [];
+        const members = Array.isArray(data?.members) ? data.members : [];
         setProject({
           ...data,
           projectId: data.projectID || data.projectId,
           hardwareAllocations,
+          members,
         });
       } catch (err: any) {
         setError(err?.message ?? String(err));
@@ -61,8 +63,9 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
           <div className="font-bold text-lg">{project.name}</div>
           <div className="text-sm">ID: {project.projectId}</div>
           <div className="text-sm">Description: {project.description}</div>
-          <div className="text-sm">Owner: {project.owner}</div>
-          <div className="text-sm">Members: {project.members?.join(", ")}</div>
+          <div className="text-sm">
+            Members: {Array.isArray(project.members) && project.members.length > 0 ? project.members.join(", ") : "None"}
+          </div>
         </div>
         <div className="mt-6">
           <h3 className="font-semibold text-black mb-2">Hardware Management</h3>
