@@ -27,7 +27,6 @@ function Projects() {
   const [projectName, setProjectName] = useState("");
   const [projectId, setProjectId] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
-  const [authorizedUsers, setAuthorizedUsers] = useState("");
   const [loginProjectId, setLoginProjectId] = useState("");
 
   React.useEffect(() => {
@@ -121,10 +120,6 @@ function Projects() {
         projectId: projectId.trim(),
         name: projectName.trim(),
         description: projectDescription.trim(),
-        authorizedUsers: authorizedUsers
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
       };
       const res = await fetch(`${baseUrl}/projects/create`, {
         method: "POST",
@@ -139,7 +134,6 @@ function Projects() {
       setProjectName("");
       setProjectId("");
       setProjectDescription("");
-      setAuthorizedUsers("");
       await fetchProjects();
     } catch (err: any) {
       alert(err?.message ?? String(err));
@@ -162,7 +156,7 @@ function Projects() {
         body: JSON.stringify({ projectId: loginProjectId.trim() }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.detail || "Login failed");
+      if (!res.ok) throw new Error(data?.detail || "Join failed");
       localStorage.setItem("projectId", data.projectId);
       setLoginProjectId("");
       await fetchProjects();
@@ -220,7 +214,7 @@ function Projects() {
               className="border rounded w-full px-2 py-1"
               placeholder="Project Name"
             />
-            {/* new: unique project ID for CREATE */}
+            {/* Unique project ID */}
             <input
               id="projectId"
               value={projectId}
@@ -228,21 +222,13 @@ function Projects() {
               className="border rounded w-full px-2 py-1"
               placeholder="Project ID (unique)"
             />
-            {/* new: description for CREATE */}
+            {/* Description */}
             <input
               id="projectDescription"
               value={projectDescription}
               onChange={e => setProjectDescription(e.target.value)}
               className="border rounded w-full px-2 py-1"
               placeholder="Project Description"
-            />
-            {/* new: authorized users (comma-separated) for CREATE */}
-            <input
-              id="authorizedUsers"
-              value={authorizedUsers}
-              onChange={e => setAuthorizedUsers(e.target.value)}
-              className="border rounded w-full px-2 py-1"
-              placeholder="Authorized Users (comma-separated)"
             />
             <button
               type="button"
@@ -259,7 +245,7 @@ function Projects() {
 
           {/* Login to Project */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="loginProjectId" className="font-semibold text-gray-900">Login to existing project</label>
+            <label htmlFor="loginProjectId" className="font-semibold text-gray-900">Join an existing project</label>
             <input
               id="loginProjectId"
               value={loginProjectId}
@@ -273,7 +259,7 @@ function Projects() {
               onClick={handleLoginProject}
               disabled={!loginProjectId.trim()}
             >
-              Login to Project
+              Join Project
             </button>
           </div>
         </div>
