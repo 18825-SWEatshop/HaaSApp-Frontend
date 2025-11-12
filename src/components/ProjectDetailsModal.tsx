@@ -62,7 +62,7 @@ const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ projectId, on
           <div className="text-sm">ID: {project.projectId}</div>
           <div className="text-sm">Description: {project.description}</div>
           <div className="text-sm">Owner: {project.owner}</div>
-          <div className="text-sm">Authorized Users: {project.authorizedUsers?.join(", ")}</div>
+          <div className="text-sm">Members: {project.members?.join(", ")}</div>
         </div>
         <div className="mt-6">
           <h3 className="font-semibold text-black mb-2">Hardware Management</h3>
